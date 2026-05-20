@@ -88,41 +88,159 @@ metadata:
 
 ---
 
-## Kanban-режим (для полного пайплайна)
+## Kanban Pipeline Mode (полный пайплайн)
 
-Когда запускается через Kanban, пайплайн разбивается на карточки:
+Когда запускается через Kanban, пайплайн разбивается на 10 карточек с зависимостями.
+Профили: `ars-researcher`, `ars-writer`, `ars-reviewer`, `ars-orchestrator`.
+
+### Карточки и зависимости
+
+```
+T1  RESEARCH        [ars-researcher]   — нет родителей
+T2  WRITE           [ars-writer]       — parents: [T1]
+T3  INTEGRITY       [ars-orchestrator] — parents: [T2]
+T4  REVIEW          [ars-reviewer]     — parents: [T3]
+T5  DECISION        [—]               — parents: [T4]  ← kanban_block: человек решает
+T6  REVISE          [ars-writer]       — parents: [T5]
+T7  RE-REVIEW       [ars-reviewer]     — parents: [T6]
+T8  FINAL DECISION  [—]               — parents: [T7]  ← kanban_block: человек
+T9  FINALIZE        [ars-writer]       — parents: [T8]
+T10 SUMMARY         [ars-orchestrator] — parents: [T9]
+```
+
+### Создание карточек (оркestrатор)
 
 ```python
-# Карточки создаются воркером ars-orchestrator
+import os
+
 T1 = kanban_create(
     title="Исследование: [тема]",
     assignee="ars-researcher",
-    body="Провести deep-research по теме: [тема]. Режим: full.",
-)
+    body="Провести deep-research по теме: [тема]. Режим: full.\n"
+         "Используй агентов: research_question → bibliography → "
+         "source_verification → synthesis → report_compiler.\n"
+         "Каскадный поиск: Киберленинка → eLibrary → Google Scholar → "
+         "авторитетные неакадемические → Semantic Scholar → arXiv.",
+)["task_id"]
 
 T2 = kanban_create(
     title="Написание статьи: [тема]",
     assignee="ars-writer",
-    parents=[T1],  # ждёт завершения исследования
-    body="Написать статью по результатам исследования T1.",
-)
+    parents=[T1],
+    body="Написать академическую статью по результатам исследования из T1.\n"
+         "Используй агентов: intake → structure_architect → argument_builder → "
+         "draft_writer → citation_compliance → abstract_bilingual → formatter.\n"
+         "Формат: APA 7.0, 3000-8000 слов.",
+)["task_id"]
 
 T3 = kanban_create(
-    title="Рецензия статьи: [тема]",
-    assignee="ars-reviewer",
-    parents=[T2],  # ждёт завершения статьи
-    body="Провести мультиперспективную рецензию статьи из T2.",
-)
+    title="Проверка целостности: [тема]",
+    assignee="ars-orchestrator",
+    parents=[T2],
+    body="Проверить статью из T2 на целостность.\n"
+         "Используй агентов: integrity_verification → "
+         "claim_ref_alignment_audit.\n"
+         "Проверь: все утверждения подкреплены источниками, "
+         "нет неподкреплённых выводов, APA формат корректен.",
+)["task_id"]
 
 T4 = kanban_create(
+    title="Рецензия статьи: [тема]",
+    assignee="ars-reviewer",
+    parents=[T3],
+    body="Провести мультиперспективную рецензию статьи из T2.\n"
+         "Используй агентов: field_analyst → eic → "
+         "methodology_reviewer + domain_reviewer + perspective_reviewer + "
+         "devils_advocate_reviewer (параллельно) → editorial_synthesizer.\n"
+         "Формат: рекомендации (accept/minor/major/reject) + конкретные замечания.",
+)["task_id"]
+
+T5 = kanban_create(
+    title="Решение по статье: [тема]",
+    assignee="ars-orchestrator",
+    parents=[T4],
+    body="Принять решение по рецензии из T4.\n"
+         "kanban_block() — ждать решения человека:\n"
+         "- accept → T9 (финализация)\n"
+         "- minor/major → T6 (доработка)\n"
+         "- reject → завершить с объяснением",
+)["task_id"]
+
+T6 = kanban_create(
     title="Доработка статьи: [тема]",
     assignee="ars-writer",
-    parents=[T3],  # ждёт завершения ревью
-    body="Доработать статью по замечаниям рецензентов из T3.",
-)
+    parents=[T5],
+    body="Доработать статью по замечаниям рецензентов из T4.\n"
+         "Используй агентов: revision_coach → draft_writer → "
+         "citation_compliance.\n"
+         "Все замечания рецензентов должны быть адресованы.",
+)["task_id"]
+
+T7 = kanban_create(
+    title="Повторная рецензия: [тема]",
+    assignee="ars-reviewer",
+    parents=[T6],
+    body="Проверить, что замечания из T4 исправлены в T6.\n"
+         "Фокус: только замечания из первой рецензии, не новые проблемы.\n"
+         "kanban_block() если нужны ещё итерации.",
+)["task_id"]
+
+T8 = kanban_create(
+    title="Финальное решение: [тема]",
+    assignee="ars-orchestrator",
+    parents=[T7],
+    body="Финальное решение человека после повторной рецензии.\n"
+         "kanban_block() — ждать подтверждения.",
+)["task_id"]
+
+T9 = kanban_create(
+    title="Финализация статьи: [тема]",
+    assignee="ars-writer",
+    parents=[T8],
+    body="Финальная сборка статьи.\n"
+         "Используй агентов: formatter → abstract_bilingual.\n"
+         "Убедись: APA 7.0, все ссылки на месте, аннотация на русском и английском.",
+)["task_id"]
+
+T10 = kanban_create(
+    title="Итоговый отчёт: [тема]",
+    assignee="ars-orchestrator",
+    parents=[T9],
+    body="Создать итоговый отчёт по всему пайплайну.\n"
+         "Включить: исследовательский вопрос, методологию, основные выводы, "
+         "источники, итерации ревью, финальную статью.\n"
+         "kanban_complete() с summary.",
+)["task_id"]
 ```
 
-Чекпоинты между стадиями: `kanban_block()` для подтверждения человеком.
+### Внутренняя оркестрация воркера
+
+Каждый воркер (ars-researcher, ars-writer, ars-reviewer) внутри карточки
+использует `delegate_task()` для вызова микро-агентов:
+
+```python
+# Пример: воркер ars-researcher для карточки T1
+result = delegate_task(
+    goal="Провести deep-research по теме: [тема]",
+    context=f"Агенты: research_question → bibliography → synthesis\n"
+            f"Каскадный поиск: Киберленинка → eLibrary → ...\n"
+            f"Тема: {task_body}",
+    toolsets=["web", "terminal"],
+)
+kanban_complete(summary=result["summary"])
+```
+
+### kanban_block() для чекпоинтов
+
+T5 и T8 используют `kanban_block()` для ожидания решения человека:
+
+```python
+# Воркер ars-orchestrator для T5
+kanban_comment(body=f"Рецензия: {review_summary}")
+kanban_block(reason="Решение по статье: accept / minor / major / reject?")
+```
+
+После разблокировки человеком воркер читает комментарий и принимает решение.
 
 ---
 
