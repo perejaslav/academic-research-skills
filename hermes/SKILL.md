@@ -120,7 +120,11 @@ T1 = kanban_create(
          "Используй агентов: research_question → bibliography → "
          "source_verification → synthesis → report_compiler.\n"
          "Каскадный поиск: Киберленинка → eLibrary → Google Scholar → "
-         "авторитетные неакадемические → Semantic Scholar → arXiv.",
+         "авторитетные неакадемические → Semantic Scholar → arXiv.\n"
+         "КРИТИЧНО: после завершения report_compiler — скопируй все артефакты в:\n"
+         "$HERMES_KANBAN_WORKSPACE/../research_artifacts/\n"
+         "Минимум: 05_final_report.md + 02_bibliography_annotated.md.\n"
+         "Эти файлы нужны T2. T1 workspace будет GC'd.",
 )["task_id"]
 
 T2 = kanban_create(
@@ -130,24 +134,26 @@ T2 = kanban_create(
     body="Написать академическую статью по результатам исследования из T1.\n"
          "Используй агентов: intake → structure_architect → argument_builder → "
          "draft_writer → citation_compliance → abstract_bilingual → formatter.\n"
-         "Формат: APA 7.0, 3000-8000 слов.",
+         "Формат: APA 7.0, 3000-8000 слов.\n"
+         "КРИТИЧНО: после завершения draft_writer — скопируй статью в:\n"
+         "$HERMES_KANBAN_WORKSPACE/../research_artifacts/article_draft.md\n"
+         "Это ОБЯЗАТЕЛЬНО для T3. T2 workspace будет GC'd.",
 )["task_id"]
 
 T3 = kanban_create(
     title="Проверка целостности: [тема]",
     assignee="ars-orchestrator",
     parents=[T2],
-    body="Проверить статью из T2 на целостность.\n"
-         "Используй агентов: integrity_verification → "
-         "claim_ref_alignment_audit.\n"
-         "Проверь: все утверждения подкреплены источниками, "
-         "нет неподкреплённых выводов, APA формат корректен.",
-)["task_id"]
+    body="Проверить статью из T2. Агенты: integrity_verification → claim_ref_alignment_audit.\n"
+         "Проверь: все утверждения подкреплены источниками, APA формат корректен.\n"
+         "КРИТИЧНО: статья находится в $HERMES_KANBAN_WORKSPACE/../../research_artifacts/article_draft.md\n"
+         "T2 workspace GC'd — читай из ../research_artifacts/, не из локального scratch.",
+)
+["task_id"]
 
 T4 = kanban_create(
     title="Рецензия статьи: [тема]",
     assignee="ars-reviewer",
-    parents=[T3],
     body="Провести мультиперспективную рецензию статьи из T2.\n"
          "Используй агентов: field_analyst → eic → "
          "methodology_reviewer + domain_reviewer + perspective_reviewer + "

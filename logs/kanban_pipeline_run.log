@@ -1,0 +1,49 @@
+[2026-05-20 21:26:49] [INFO] ============================================================
+[2026-05-20 21:26:49] [INFO] Kanban Pipeline Run — Full T1→T10
+[2026-05-20 21:26:49] [INFO] Log file: C:\Users\immor/academic-research-skills/logs\kanban_pipeline_run.log
+[2026-05-20 21:26:49] [INFO] ============================================================
+[2026-05-20 21:26:59] [INFO] Starting hermes gateway in background...
+[2026-05-20 21:27:04] [INFO] Gateway PID: 40660
+[2026-05-20 21:27:04] [INFO] Gateway status: ✗ Gateway is not running
+
+To start:
+  hermes gateway run      # Run in foreground
+  hermes gateway install  # Install as Windows Scheduled Task (auto-start on login)
+[2026-05-20 21:27:24] [INFO] Checking kanban board after gateway start...
+[2026-05-20 21:27:25] [INFO] kanban ls:
+● t_6016a637  running   ars-researcher        T1: Исследование — LLM в Яндекс.Директ
+◻ t_8016051f  todo      ars-writer            T2: Написание статьи — LLM в Яндекс.Директ
+◻ t_26010f7d  todo      ars-orchestrator      T3: Проверка целостности — LLM в Яндекс.Директ
+◻ t_2b198b9b  todo      ars-reviewer          T4: Рецензия статьи — LLM в Яндекс.Директ
+◻ t_5264dd8a  todo      ars-orchestrator      T5: Решение по статье — LLM в Яндекс.Директ
+◻ t_3afec78a  todo      ars-writer            T6: Дораб
+[2026-05-20 21:27:33] [INFO] Gateway DISPATCHED — T1 is now in 'running' state!
+[2026-05-20 21:27:33] [INFO] Waiting for T1 to complete (ars-researcher processing)...
+[2026-05-20 21:28:34] [STATUS] T1: ● t_6016a637  running   ars-researcher        T1: Исследование — LLM в Яндекс.Директ
+[2026-05-20 21:29:34] [STATUS] T1: ● t_6016a637  running   ars-researcher        T1: Исследование — LLM в Яндекс.Директ
+[2026-05-20 21:30:35] [STATUS] T1: ● t_6016a637  running   ars-researcher        T1: Исследование — LLM в Яндекс.Директ
+[2026-05-20 21:31:36] [STATUS] T1: ● t_6016a637  running   ars-researcher        T1: Исследование — LLM в Яндекс.Директ
+[2026-05-20 21:33:17] [INFO] Monitoring loop started
+[2026-05-20 21:33:17] [STATUS] T1: running (started ~21:27, now ~21:37)
+[2026-05-20 21:33:17] [INFO] Files in workspace: 01_research_question_brief.md (5943 bytes, 54 lines)
+[2026-05-20 21:33:17] [INFO] Gateway worker is ACTIVE — pipeline is processing
+[2026-05-20 21:35:53] [STATUS] T1 progress: research_question ✅ (21:28), bibliography ✅ (21:33), source_verification ✅ (21:34)
+[2026-05-20 21:35:53] [STATUS] Still running: synthesis_agent → report_compiler
+[2026-05-20 21:35:53] [INFO] Files: 01_RQ ✅ 02_biblio ✅ 03_verification ✅ (total ~35KB so far)
+[2026-05-20 21:38:08] [STATUS] T1: ALL 5 AGENTS COMPLETED!
+[2026-05-20 21:38:08] [STATUS] Files: 01_RQ ✅ 02_biblio ✅ 03_verification ✅ 04_synthesis ✅ 05_final_report ✅ (~80KB)
+[2026-05-20 21:38:08] [INFO] Task still 'running' — waiting for kanban worker to auto-complete and dispatch T2...
+[2026-05-20 21:39:32] [SUCCESS] T1 COMPLETED! Auto-dispatched to T2 (ars-writer)
+[2026-05-20 21:39:32] [INFO] Pipeline working: T1 ✅ → T2 🔄 (writing article) → T3-T10 ⏳
+[2026-05-20 21:39:32] [ERROR] API error in T1 log: Connection error to opengateway.gitlawb.com - 2 retries, recovered
+[2026-05-20 21:47:05] [STATUS] T2: draft_article.md written — 61948 bytes (~4000+ words)
+[2026-05-20 21:47:05] [STATUS] T2 still running: abstract, formatting, finalization pending
+[2026-05-20 22:17:04] [SUCCESS] T1 ✅ COMPLETED (21:27→21:38, ~11 min)
+[2026-05-20 22:17:04] [SUCCESS] T2 ✅ COMPLETED (21:38→22:11, ~33 min) - Article ~2700 words, 25 sources
+[2026-05-20 22:17:04] [STATUS] T3 🔄 INTEGRITY CHECK (ars-orchestrator) → T4🔲 → T5⏸️BLOCK → T6🔲 → T7🔲 → T8⏸️BLOCK → T9🔲 → T10🔲
+[2026-05-20 22:17:04] [INFO] Auto-dispatch working perfectly — no manual intervention needed
+[2026-05-20 22:19:41] [BUG] T3 BLOCKED — workspace GC'd, article file lost!
+[2026-05-20 22:19:41] [BUG] T2 workspace (t_8016051f) was garbage-collected after completion
+[2026-05-20 22:19:41] [BUG] 04_draft_article.md (~85KB) not found anywhere
+[2026-05-20 22:19:41] [FIX] Need to: (1) copy article to shared location before T2 completes, or (2) disable GC for parent workspaces
+[2026-05-20 22:19:41] [ERROR] Pipeline paused at T3 — needs manual fix
