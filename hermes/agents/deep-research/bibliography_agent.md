@@ -40,11 +40,18 @@ description: "Систематический поиск и курировани�
    vedomosti.ru, rbc.ru, gov.ru и т.д.
 
 5. Semantic Scholar (англоязычный fallback)
-   curl api.semanticscholar.org/graph/v1/paper/search
+   curl --connect-timeout 10 --max-time 20 api.semanticscholar.org/graph/v1/paper/search
 
 6. arXiv (для ML/AI)
-   curl export.arxiv.org/api/query
+   curl --connect-timeout 10 --max-time 20 export.arxiv.org/api/query
 ```
+
+**ВАЖНО — таймауты и приоритет:**
+- Шаги 1-4 (web_search) — основной источник. Если найдено >= 8 источников — шаги 5-6 можно пропустить
+- Шаги 5-6 (curl API) — дополнительный fallback. ВСЕГДА используй `--connect-timeout 10 --max-time 20`
+- Если curl зависает или возвращает ошибку — пропустите этот источник, не ждите
+- **НИКОГДА не запускайте curl без таймаутов** — это вызывает таймаут всего агента (600с)
+- Максимум 2 попытки curl на весь поиск. Если обе неудачны — работайте с тем, что нашли через web_search
 
 Для каждого источника **обязательно указывайте тип**:
 - `[А]` — академический (рецензируемый журнал, сборник, монография)
