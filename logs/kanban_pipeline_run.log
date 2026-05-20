@@ -47,3 +47,16 @@ To start:
 [2026-05-20 22:19:41] [BUG] 04_draft_article.md (~85KB) not found anywhere
 [2026-05-20 22:19:41] [FIX] Need to: (1) copy article to shared location before T2 completes, or (2) disable GC for parent workspaces
 [2026-05-20 22:19:41] [ERROR] Pipeline paused at T3 — needs manual fix
+[2026-05-20 22:23:03] [BUG] CRITICAL: Article from T2 (~85KB, ~2700 words) LOST — workspace GC'd before T3 could read it
+[2026-05-20 22:23:03] [BUG] Root cause: scratch workspace of completed tasks is garbage-collected automatically
+[2026-05-20 22:23:03] [FIX_APPLIED] SKILL.md patched — T1 and T2 now copy artifacts to ../research_artifacts/ before completing
+[2026-05-20 22:23:03] [FIX] T1: saves research_report + bibliography to ../research_artifacts/
+[2026-05-20 22:23:03] [FIX] T2: saves article_draft.md to ../research_artifacts/
+[2026-05-20 22:23:03] [FIX] T3+: read from ../research_artifacts/, not from parent workspace
+[2026-05-20 22:23:03] [STATUS] Current run is broken — need to restart from T2
+[2026-05-20 22:23:03] [TODO] Archive current board, restart with fixed SKILL.md
+[2026-05-20 22:26:31] [INFO] === PIPELINE RESTARTED WITH FIX ===
+[2026-05-20 22:26:31] [FIX] SKILL.md: T1 and T2 now copy artifacts to ../research_artifacts/ before workspace GC
+[2026-05-20 22:26:31] [FIX] T3+: read from ../research_artifacts/ not from parent scratch
+[2026-05-20 22:26:31] [RUN] T1: t_c521ba83 — running
+[2026-05-20 22:26:31] [STATUS] Pipeline monitoring active

@@ -1,322 +1,180 @@
 ---
 name: academic-research
-description: "Академический исследовательский пайплайн: поиск литературы, написание статей, рецензирование, доработка. 38 агентов, 6 режимов, Kanban-оркестрация. Триггеры: исследование, написать статью, обзор литературы, рецензия, научная работа, research, write paper, literature review."
-version: "1.0.0"
+description: "Быстрый академический пайплайн: от темы до статьи за 30-45 мин. 3 режима: instant (быстро), full (глубоко), legacy (Kanban-пайплайн)."
+version: "2.0.0"
 metadata:
   hermes:
-    tags: [academic, research, writing, review, kanban, literature]
+    tags: [academic, research, writing, review, paper]
     platforms: [linux, macos, windows]
 ---
 
-# Academic Research Skills — Hermes Agent
+# Academic Research Skills v2
 
-Академический исследовательский пайплайн для Hermes Agent. Портировано из
-[ARS v3.9.4.2](https://github.com/Imbad0202/academic-research-skills) (Claude Code).
+**Что делает:** от темы до готовой статьи за 30-45 минут. Поиск источников → написание → ревью → файл на Desktop.
 
-**Что делает**: помогает исследователю пройти путь от темы до готовой статьи —
-с поиском источников, написанием, ревью и доработкой. AI — соавтор, а не автор.
+**Не делает:** имитацию академического процесса с 38 агентами и 10 Kanban-карточками. Для этого есть `legacy`-режим.
 
 ---
 
-## Быстрый старт
+## Режимы
 
-**Полный пайплайн** (от темы до статьи):
-```
-Хочу написать исследовательскую статью о влиянии ИИ на маркетинг
-```
+| Режим | Когда | Время | Агентов |
+|-------|-------|-------|---------|
+| `instant` | Есть тема, нужна статья | ~30-45 мин | 3 (bibliography → writer → editor) |
+| `full` | Сложная тема, нужна глубина | ~1-2 ч | 5-8 (core + situational) |
+| `legacy` | Нужен Kanban-пайплайн | 3+ ч | 38 |
 
-**Только исследование** (поиск литературы):
-```
-Проведи исследование по теме: применение машинного обучения в рекламе
-```
-
-**Сократовский режим** (нужна помощь сформулировать тему):
-```
-Помоги определить тему исследования, я интересуюсь цифровым маркетингом
-```
-
-**Рецензия статьи**:
-```
-Проведи рецензию этой статьи: [текст или файл]
-```
+`instant` — по умолчанию. Используй его, если не сказано иное.
 
 ---
 
-## Режимы работы
+## Режим «instant» (основной)
 
-| Режим | Когда использовать | Агенты | Выход |
-|-------|-------------------|--------|-------|
-| `socratic` | Нет чёткой темы, нужна помощь | RQ + Socratic Mentor + DA | План исследования |
-| `full` | Есть тема, нужна полная статья | Все 9 основных | APA отчёт 3000-8000 слов |
-| `quick` | Нужна быстрая справка | RQ + Bibliography + Verification | Бриф 500-1500 слов |
-| `lit-review` | Нужен только обзор литературы | Bibliography + Verification + Synthesis | Аннотированная библиография |
-| `review` | Есть текст, нужна оценка | Editor + DA + Ethics | Рецензия |
-| `fact-check` | Проверить конкретные утверждения | Source Verification | Отчёт 300-800 слов |
-
-**Как выбрать**: не знаете → `socratic`. Знаете тему → `full`. Нужно быстро → `quick`.
-
----
-
-## Пайплайн (6 фаз)
+### Схема
 
 ```
-Фаза 1: ОПРЕДЕЛЕНИЕ (интерактивная)
-  [research_question_agent]    → RQ Brief (вопрос, подвопросы, оценка FINER)
-  [research_architect_agent]   → Методологический план
-  [devils_advocate_agent]      → Проверка: вопрос ясен? метод подходит?
-  >>> ЧЕКПОИНТ: подтверждение пользователем <<<
-
-Фаза 2: ИССЛЕДОВАНИЕ
-  [bibliography_agent]         → Аннотированная библиография (APA 7.0)
-  [source_verification_agent]  → Верификация и градация источников
-
-Фаза 3: АНАЛИЗ
-  [synthesis_agent]            → Синтез, выявление пробелов
-  [devils_advocate_agent]      → Проверка на предвзятость
-
-Фаза 4: НАПИСАНИЕ
-  [report_compiler_agent]      → Полный черновик (APA 7.0)
-
-Фаза 5: РЕВЬЮ (параллельно)
-  [editor_in_chief_agent]      → Редакторская оценка
-  [ethics_review_agent]        → Этическая проверка
-  [devils_advocate_agent]      → Финальная проверка уязвимостей
-
-Фаза 6: ДОРАБОТКА
-  [report_compiler_agent]      → Финальный отчёт (макс. 2 цикла доработки)
+Тема → [bibliography: web_search, 5-10 источников]
+     → [draft_writer: статья, APA 7.0]
+     → [editor: рецензия, 3-5 замечаний]
+     → [доработка если major/reject]
+     → [file_output: Desktop]
 ```
 
----
-
-## Kanban Pipeline Mode (полный пайплайн)
-
-Когда запускается через Kanban, пайплайн разбивается на 10 карточек с зависимостями.
-Профили: `ars-researcher`, `ars-writer`, `ars-reviewer`, `ars-orchestrator`.
-
-### Карточки и зависимости
+### Команда для запуска
 
 ```
-T1  RESEARCH        [ars-researcher]   — нет родителей
-T2  WRITE           [ars-writer]       — parents: [T1]
-T3  INTEGRITY       [ars-orchestrator] — parents: [T2]
-T4  REVIEW          [ars-reviewer]     — parents: [T3]
-T5  DECISION        [—]               — parents: [T4]  ← kanban_block: человек решает
-T6  REVISE          [ars-writer]       — parents: [T5]
-T7  RE-REVIEW       [ars-reviewer]     — parents: [T6]
-T8  FINAL DECISION  [—]               — parents: [T7]  ← kanban_block: человек
-T9  FINALIZE        [ars-writer]       — parents: [T8]
-T10 SUMMARY         [ars-orchestrator] — parents: [T9]
+Напиши статью на тему: [тема]
 ```
 
-### Создание карточек (оркestrатор)
+Или явно:
+
+```
+instant: [тема], стиль: научно-публицистический, объём: ~3000 слов
+```
+
+### Агенты (core/)
+
+- `agents/core/bibliography_agent.md` — поиск 5-10 источников (каскад: Киберленинка → eLibrary → Google Scholar → отраслевые)
+- `agents/core/draft_writer_agent.md` — написание статьи от источников
+- `agents/core/editor_agent.md` — рецензия, 3-5 конкретных замечаний
+- `agents/core/file_output_agent.md` — запись на Desktop (Windows-safe)
+
+### Референсы (references/core/)
+
+- `references/core/source_search_strategy.md` — каскадная стратегия поиска
+- `references/core/apa7_russian_guide.md` — краткий гайд APA 7.0
+- `references/core/pipeline_rules.md` — правила пайплайна
+
+### Процесс (внутренний)
 
 ```python
-import os
-
-T1 = kanban_create(
-    title="Исследование: [тема]",
-    assignee="ars-researcher",
-    body="Провести deep-research по теме: [тема]. Режим: full.\n"
-         "Используй агентов: research_question → bibliography → "
-         "source_verification → synthesis → report_compiler.\n"
-         "Каскадный поиск: Киберленинка → eLibrary → Google Scholar → "
-         "авторитетные неакадемические → Semantic Scholar → arXiv.\n"
-         "КРИТИЧНО: после завершения report_compiler — скопируй все артефакты в:\n"
-         "$HERMES_KANBAN_WORKSPACE/../research_artifacts/\n"
-         "Минимум: 05_final_report.md + 02_bibliography_annotated.md.\n"
-         "Эти файлы нужны T2. T1 workspace будет GC'd.",
-)["task_id"]
-
-T2 = kanban_create(
-    title="Написание статьи: [тема]",
-    assignee="ars-writer",
-    parents=[T1],
-    body="Написать академическую статью по результатам исследования из T1.\n"
-         "Используй агентов: intake → structure_architect → argument_builder → "
-         "draft_writer → citation_compliance → abstract_bilingual → formatter.\n"
-         "Формат: APA 7.0, 3000-8000 слов.\n"
-         "КРИТИЧНО: после завершения draft_writer — скопируй статью в:\n"
-         "$HERMES_KANBAN_WORKSPACE/../research_artifacts/article_draft.md\n"
-         "Это ОБЯЗАТЕЛЬНО для T3. T2 workspace будет GC'd.",
-)["task_id"]
-
-T3 = kanban_create(
-    title="Проверка целостности: [тема]",
-    assignee="ars-orchestrator",
-    parents=[T2],
-    body="Проверить статью из T2. Агенты: integrity_verification → claim_ref_alignment_audit.\n"
-         "Проверь: все утверждения подкреплены источниками, APA формат корректен.\n"
-         "КРИТИЧНО: статья находится в $HERMES_KANBAN_WORKSPACE/../../research_artifacts/article_draft.md\n"
-         "T2 workspace GC'd — читай из ../research_artifacts/, не из локального scratch.",
-)
-["task_id"]
-
-T4 = kanban_create(
-    title="Рецензия статьи: [тема]",
-    assignee="ars-reviewer",
-    body="Провести мультиперспективную рецензию статьи из T2.\n"
-         "Используй агентов: field_analyst → eic → "
-         "methodology_reviewer + domain_reviewer + perspective_reviewer + "
-         "devils_advocate_reviewer (параллельно) → editorial_synthesizer.\n"
-         "Формат: рекомендации (accept/minor/major/reject) + конкретные замечания.",
-)["task_id"]
-
-T5 = kanban_create(
-    title="Решение по статье: [тема]",
-    assignee="ars-orchestrator",
-    parents=[T4],
-    body="Принять решение по рецензии из T4.\n"
-         "kanban_block() — ждать решения человека:\n"
-         "- accept → T9 (финализация)\n"
-         "- minor/major → T6 (доработка)\n"
-         "- reject → завершить с объяснением",
-)["task_id"]
-
-T6 = kanban_create(
-    title="Доработка статьи: [тема]",
-    assignee="ars-writer",
-    parents=[T5],
-    body="Доработать статью по замечаниям рецензентов из T4.\n"
-         "Используй агентов: revision_coach → draft_writer → "
-         "citation_compliance.\n"
-         "Все замечания рецензентов должны быть адресованы.",
-)["task_id"]
-
-T7 = kanban_create(
-    title="Повторная рецензия: [тема]",
-    assignee="ars-reviewer",
-    parents=[T6],
-    body="Проверить, что замечания из T4 исправлены в T6.\n"
-         "Фокус: только замечания из первой рецензии, не новые проблемы.\n"
-         "kanban_block() если нужны ещё итерации.",
-)["task_id"]
-
-T8 = kanban_create(
-    title="Финальное решение: [тема]",
-    assignee="ars-orchestrator",
-    parents=[T7],
-    body="Финальное решение человека после повторной рецензии.\n"
-         "kanban_block() — ждать подтверждения.",
-)["task_id"]
-
-T9 = kanban_create(
-    title="Финализация статьи: [тема]",
-    assignee="ars-writer",
-    parents=[T8],
-    body="Финальная сборка статьи.\n"
-         "Используй агентов: formatter → abstract_bilingual.\n"
-         "Убедись: APA 7.0, все ссылки на месте, аннотация на русском и английском.",
-)["task_id"]
-
-T10 = kanban_create(
-    title="Итоговый отчёт: [тема]",
-    assignee="ars-orchestrator",
-    parents=[T9],
-    body="Создать итоговый отчёт по всему пайплайну.\n"
-         "Включить: исследовательский вопрос, методологию, основные выводы, "
-         "источники, итерации ревью, финальную статью.\n"
-         "kanban_complete() с summary.",
-)["task_id"]
+def instant_paper(topic: str, style: str = "academic", word_count: str = "3000-5000"):
+    # Шаг 1: поиск источников
+    sources = delegate_task(
+        goal="Найти 5-10 источников по теме: " + topic,
+        context=f"Тема: {topic}\nСтратегия: {source_search_strategy}",
+        toolsets=["web"],
+    )
+    
+    # Шаг 2: написание статьи
+    draft = delegate_task(
+        goal="Написать статью по теме: " + topic,
+        context=f"Тема: {topic}\nИсточники: {sources['summary']}\n"
+                f"Стиль: {style}\nОбъём: {word_count} слов\n"
+                f"{apa7_guide}\n{pipeline_rules}",
+        toolsets=[],
+    )
+    
+    # Шаг 3: рецензия
+    review = delegate_task(
+        goal="Провести рецензию статьи",
+        context=f"Статья:\n{draft['summary']}\n"
+                f"Правила рецензии: {editor_agent}",
+        toolsets=[],
+    )
+    
+    # Шаг 4: доработка (если major/reject)
+    if "major" in review['summary'].lower() or "reject" in review['summary'].lower():
+        draft = delegate_task(
+            goal="Доработать статью по замечаниям рецензента",
+            context=f"Статья:\n{draft['summary']}\n"
+                    f"Замечания:\n{review['summary']}",
+            toolsets=[],
+        )
+    
+    # Шаг 5: запись файла (через execute_code)
+    save_to_desktop(draft['summary'], topic)
+    
+    return {
+        "article": draft['summary'],
+        "sources": sources['summary'],
+        "review": review['summary'],
+        "file": f"~/Desktop/СТАТЬЯ_{topic[:30]}.md"
+    }
 ```
 
-### Внутренняя оркестрация воркера
+---
 
-Каждый воркер (ars-researcher, ars-writer, ars-reviewer) внутри карточки
-использует `delegate_task()` для вызова микро-агентов:
+## Режим «full» (ситуационные агенты)
 
-```python
-# Пример: воркер ars-researcher для карточки T1
-result = delegate_task(
-    goal="Провести deep-research по теме: [тема]",
-    context=f"Агенты: research_question → bibliography → synthesis\n"
-            f"Каскадный поиск: Киберленинка → eLibrary → ...\n"
-            f"Тема: {task_body}",
-    toolsets=["web", "terminal"],
-)
-kanban_complete(summary=result["summary"])
+Когда instant-статьи недостаточно (объём >5000 слов, нужна методология, этическая экспертиза):
+
+```
+full: [тема], с методологическим планом и этической проверкой
 ```
 
-### kanban_block() для чекпоинтов
+Дополнительно загружаются агенты из `agents/situational/`:
+- research_question_agent — формулировка RQ по FINER
+- structure_architect_agent — детальная структура
+- ethics_review_agent — этическая проверка
+- и другие по необходимости
 
-T5 и T8 используют `kanban_block()` для ожидания решения человека:
+---
 
-```python
-# Воркер ars-orchestrator для T5
-kanban_comment(body=f"Рецензия: {review_summary}")
-kanban_block(reason="Решение по статье: accept / minor / major / reject?")
+## Режим «legacy» (Kanban-пайплайн)
+
+Полный порт оригинального ARS. 10 Kanban-карточек, 4 профиля, gateway, чекпоинты.
+
+Для запуска:
+```
+legacy: [тема]
 ```
 
-После разблокировки человеком воркер читает комментарий и принимает решение.
+Требует:
+- 4 профиля (ars-researcher, ars-writer, ars-reviewer, ars-orchestrator)
+- Ручное создание Kanban-карточек
+- Вмешательство на T5 и T8
+
+Архивная документация в `agents/obsolete/` и `references/archive/`.
 
 ---
 
 ## Стратегия поиска источников
 
-Каскад (русские академические → авторитетные неакадемические → международные):
+Каскад (русские академические → авторитетные → международные):
 
-1. **Киберленинка** — `web_search("site:cyberleninka.ru KEYWORDS")` + `web_extract`
-2. **eLibrary/РИНЦ** — `web_search("site:elibrary.ru KEYWORDS")` + `web_extract`
-3. **Google Scholar** — `web_search("KEYWORDS научная статья")`
-4. **Авторитетные неакадемические** — отчёты, СМИ, аналитика (vedomosti.ru, gov.ru и т.д.)
-5. **Semantic Scholar** — fallback для англоязычных (API без ключа)
+1. **Киберленинка** — `web_search("site:cyberleninka.ru КЛЮЧЕВЫЕ_СЛОВА")` + `web_extract`
+2. **eLibrary/РИНЦ** — `web_search("site:elibrary.ru КЛЮЧЕВЫЕ_СЛОВА")`
+3. **Google Scholar** — `web_search("КЛЮЧЕВЫЕ_СЛОВА научная статья")`
+4. **Авторитетные отраслевые** — vc.ru, ppc.world, seonews, habr.com и т.д.
+5. **Semantic Scholar** — fallback (без ключа, 1 req/sec)
 6. **arXiv** — для препринтов ML/AI
 
-Подробнее: `references/shared/source_search_strategy.md`
+Подробнее: `references/core/source_search_strategy.md`
 
 ---
 
-## Состав команды агентов
+## Установка (v2)
 
-| # | Агент | Роль | Фаза | Файл |
-|---|-------|------|------|------|
-| 1 | research_question_agent | Формулировка исследовательского вопроса | 1 | `agents/deep-research/research_question_agent.md` |
-| 2 | research_architect_agent | Методологический план | 1 | `agents/deep-research/research_architect_agent.md` |
-| 3 | bibliography_agent | Систематический поиск литературы | 2 | `agents/deep-research/bibliography_agent.md` |
-| 4 | source_verification_agent | Верификация источников | 2 | `agents/deep-research/source_verification_agent.md` |
-| 5 | synthesis_agent | Межисточниковый синтез | 3 | `agents/deep-research/synthesis_agent.md` |
-| 6 | report_compiler_agent | Сборка отчёта (APA 7.0) | 4, 6 | `agents/deep-research/report_compiler_agent.md` |
-| 7 | editor_in_chief_agent | Редакторская ревью | 5 | `agents/deep-research/editor_in_chief_agent.md` |
-| 8 | devils_advocate_agent | Адвокат дьявола | 1, 3, 5 | `agents/deep-research/devils_advocate_agent.md` |
-| 9 | ethics_review_agent | Этическая проверка | 5 | `agents/deep-research/ethics_review_agent.md` |
-| 10 | socratic_mentor_agent | Сократовский диалог | Socratic | `agents/deep-research/socratic_mentor_agent.md` |
-| 11 | risk_of_bias_agent | Оценка рисков предвзятости | SR | `agents/deep-research/risk_of_bias_agent.md` |
-| 12 | meta_analysis_agent | Мета-анализ | SR | `agents/deep-research/meta_analysis_agent.md` |
-| 13 | monitoring_agent | Мониторинг новых публикаций | Опц. | `agents/deep-research/monitoring_agent.md` |
-| 14 | intake_agent | Конфигурация статьи | 0 | `agents/academic-paper/intake_agent.md` |
-| 15 | literature_strategist_agent | Стратегия поиска | 1 | `agents/academic-paper/literature_strategist_agent.md` |
-| 16 | structure_architect_agent | Структура статьи | 2 | `agents/academic-paper/structure_architect_agent.md` |
-| 17 | argument_builder_agent | Аргументация | 3 | `agents/academic-paper/argument_builder_agent.md` |
-| 18 | draft_writer_agent | Написание черновика | 4 | `agents/academic-paper/draft_writer_agent.md` |
-| 19 | citation_compliance_agent | Проверка цитат | 5a | `agents/academic-paper/citation_compliance_agent.md` |
-| 20 | abstract_bilingual_agent | Аннотация | 5b | `agents/academic-paper/abstract_bilingual_agent.md` |
-| 21 | peer_reviewer_agent | Имитация ревью | 6 | `agents/academic-paper/peer_reviewer_agent.md` |
-| 22 | revision_coach_agent | Коучинг доработки | 6→7 | `agents/academic-paper/revision_coach_agent.md` |
-| 23 | formatter_agent | Форматирование | 7 | `agents/academic-paper/formatter_agent.md` |
-| 24 | visualization_agent | Графики и таблицы | 4 | `agents/academic-paper/visualization_agent.md` |
-| 25 | field_analyst_agent | Определение области | 0 | `agents/academic-paper-reviewer/field_analyst_agent.md` |
-| 26 | eic_agent | Главный редактор | 1 | `agents/academic-paper-reviewer/eic_agent.md` |
-| 27 | methodology_reviewer_agent | Рецензент-методолог | 1 | `agents/academic-paper-reviewer/methodology_reviewer_agent.md` |
-| 28 | domain_reviewer_agent | Доменный эксперт | 1 | `agents/academic-paper-reviewer/domain_reviewer_agent.md` |
-| 29 | perspective_reviewer_agent | Междисциплинарный взгляд | 1 | `agents/academic-paper-reviewer/perspective_reviewer_agent.md` |
-| 30 | devils_advocate_reviewer_agent | Адвокат дьявола (ревью) | 1 | `agents/academic-paper-reviewer/devils_advocate_reviewer_agent.md` |
-| 31 | editorial_synthesizer_agent | Синтез решений | 2 | `agents/academic-paper-reviewer/editorial_synthesizer_agent.md` |
-| 32 | pipeline_orchestrator_agent | Оркестратор пайплайна | — | `agents/academic-pipeline/pipeline_orchestrator_agent.md` |
-| 33 | integrity_verification_agent | Проверка целостности | 2.5, 4.5 | `agents/academic-pipeline/integrity_verification_agent.md` |
-| 34 | claim_ref_alignment_audit_agent | Аудит утверждений | 4→5 | `agents/academic-pipeline/claim_ref_alignment_audit_agent.md` |
-| 35 | state_tracker_agent | Трекинг состояния | — | `agents/academic-pipeline/state_tracker_agent.md` |
-| 36 | collaboration_depth_agent | Оценка коллаборации | 6 | `agents/academic-pipeline/collaboration_depth_agent.md` |
+```bash
+# Удалить профили (если были v1)
+hermes config delete profiles.ars-researcher
+hermes config delete profiles.ars-writer
+hermes config delete profiles.ars-reviewer
+hermes config delete profiles.ars-orchestrator
 
----
+# Установить скилл
+hermes skills add academic-research
 
-## Портирование из ARS
-
-Оригинальный репо: https://github.com/Imbad0202/academic-research-skills
-План: `.hermes/plans/2026-05-20_ars-hermes-port.md`
-
-**Что изменено при портировании:**
-- Язык агентов: английский → русский (термины на английском)
-- Источники: Semantic Scholar/OpenAlex/Crossref → Киберленинка/eLibrary/Google Scholar
-- Оркестрация: Claude Code persona switching → delegate_task()
-- Контекст: shared session → isolated context passing
-- Хуки: PreToolUse/PostToolUse → изоляция через delegate_task
-- Формат: только Markdown (Pandoc/tectonic — позже)
+# Готово — больше ничего не нужно
+```
